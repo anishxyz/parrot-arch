@@ -30,7 +30,7 @@ def get_pydantic_schema(model: Type[BaseModel]):
     return {
         "type": "object",
         "properties": schema.get("properties", {}),
-        "required": schema.get("required", [])
+        "required": schema.get("required", []),
     }
 
 
@@ -45,15 +45,11 @@ def tool(func):
     tool_spec = {
         "name": func.__name__,
         "description": func.__doc__ or f"Executes the {func.__name__} function",
-        "parameters": {
-            "type": "object",
-            "properties": {},
-            "required": []
-        }
+        "parameters": {"type": "object", "properties": {}, "required": []},
     }
 
     for name, param in params.items():
-        if name.startswith('_'):  # Skip these parameters
+        if name.startswith("_"):  # Skip these parameters
             continue
 
         param_type = get_type_name(param.annotation)
@@ -64,22 +60,18 @@ def tool(func):
             param_spec = {
                 "type": "array",
                 "items": {"type": item_type},
-                "description": description
+                "description": description,
             }
         elif param_type == "object":
-            if isinstance(param.annotation, type) and issubclass(param.annotation, BaseModel):
+            if isinstance(param.annotation, type) and issubclass(
+                param.annotation, BaseModel
+            ):
                 param_spec = get_pydantic_schema(param.annotation)
                 param_spec["description"] = description
             else:
-                param_spec = {
-                    "type": "object",
-                    "description": description
-                }
+                param_spec = {"type": "object", "description": description}
         else:
-            param_spec = {
-                "type": param_type,
-                "description": description
-            }
+            param_spec = {"type": param_type, "description": description}
 
         tool_spec["parameters"]["properties"][name] = param_spec
 

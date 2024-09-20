@@ -12,11 +12,11 @@ def test_basic_function():
         pass
 
     spec = json.loads(simple_function.tool_spec)
-    assert spec['name'] == 'simple_function'
-    assert spec['description'] == 'A simple function with two parameters'
-    assert spec['parameters']['properties']['param1']['type'] == 'string'
-    assert spec['parameters']['properties']['param2']['type'] == 'integer'
-    assert spec['parameters']['required'] == ['param1', 'param2']
+    assert spec["name"] == "simple_function"
+    assert spec["description"] == "A simple function with two parameters"
+    assert spec["parameters"]["properties"]["param1"]["type"] == "string"
+    assert spec["parameters"]["properties"]["param2"]["type"] == "integer"
+    assert spec["parameters"]["required"] == ["param1", "param2"]
 
 
 def test_function_with_default_values():
@@ -26,7 +26,7 @@ def test_function_with_default_values():
         pass
 
     spec = json.loads(function_with_defaults.tool_spec)
-    assert spec['parameters']['required'] == ['param1']
+    assert spec["parameters"]["required"] == ["param1"]
 
 
 def test_function_with_complex_types():
@@ -36,9 +36,9 @@ def test_function_with_complex_types():
         pass
 
     spec = json.loads(complex_function.tool_spec)
-    assert spec['parameters']['properties']['param1']['type'] == 'array'
-    assert spec['parameters']['properties']['param1']['items']['type'] == 'string'
-    assert spec['parameters']['properties']['param2']['type'] == 'object'
+    assert spec["parameters"]["properties"]["param1"]["type"] == "array"
+    assert spec["parameters"]["properties"]["param1"]["items"]["type"] == "string"
+    assert spec["parameters"]["properties"]["param2"]["type"] == "object"
 
 
 def test_function_with_underscore_params():
@@ -48,8 +48,8 @@ def test_function_with_underscore_params():
         pass
 
     spec = json.loads(function_with_underscore.tool_spec)
-    assert '_ignored' not in spec['parameters']['properties']
-    assert spec['parameters']['properties']['param1']['type'] == 'integer'
+    assert "_ignored" not in spec["parameters"]["properties"]
+    assert spec["parameters"]["properties"]["param1"]["type"] == "integer"
 
 
 def test_function_without_annotations():
@@ -59,8 +59,8 @@ def test_function_without_annotations():
         pass
 
     spec = json.loads(no_annotations.tool_spec)
-    assert spec['parameters']['properties']['param1']['type'] == 'string'
-    assert spec['parameters']['properties']['param2']['type'] == 'string'
+    assert spec["parameters"]["properties"]["param1"]["type"] == "string"
+    assert spec["parameters"]["properties"]["param2"]["type"] == "string"
 
 
 def test_function_with_docstring():
@@ -70,7 +70,7 @@ def test_function_with_docstring():
         pass
 
     spec = json.loads(docstring_function.tool_spec)
-    assert spec['description'] == 'This is a test docstring'
+    assert spec["description"] == "This is a test docstring"
 
 
 def test_function_without_docstring():
@@ -79,10 +79,11 @@ def test_function_without_docstring():
         pass
 
     spec = json.loads(no_docstring.tool_spec)
-    assert spec['description'] == 'Executes the no_docstring function'
+    assert spec["description"] == "Executes the no_docstring function"
 
 
 # Additional pytest-specific tests
+
 
 def test_tool_decorator_preserves_function():
     @tool
@@ -91,26 +92,29 @@ def test_tool_decorator_preserves_function():
         return x + y
 
     assert preserved_function(2, 3) == 5
-    assert preserved_function.__name__ == 'preserved_function'
-    assert preserved_function.__doc__ == 'This function should be preserved'
+    assert preserved_function.__name__ == "preserved_function"
+    assert preserved_function.__doc__ == "This function should be preserved"
 
 
-@pytest.mark.parametrize("annotation,expected_type", [
-    (str, "string"),
-    (int, "integer"),
-    (float, "number"),
-    (bool, "boolean"),
-    (List[int], "array"),
-    (Dict[str, int], "object"),
-    (Any, "object"),
-])
+@pytest.mark.parametrize(
+    "annotation,expected_type",
+    [
+        (str, "string"),
+        (int, "integer"),
+        (float, "number"),
+        (bool, "boolean"),
+        (List[int], "array"),
+        (Dict[str, int], "object"),
+        (Any, "object"),
+    ],
+)
 def test_type_inference(annotation, expected_type):
     @tool
     def type_test(param: annotation):
         pass
 
     spec = json.loads(type_test.tool_spec)
-    assert spec['parameters']['properties']['param']['type'] == expected_type
+    assert spec["parameters"]["properties"]["param"]["type"] == expected_type
 
 
 class TestModel(BaseModel):
@@ -126,11 +130,15 @@ def test_pydantic_model():
         pass
 
     spec = json.loads(process_user.tool_spec)
-    assert spec['parameters']['properties']['user']['type'] == 'object'
-    assert 'name' in spec['parameters']['properties']['user']['properties']
-    assert 'age' in spec['parameters']['properties']['user']['properties']
-    assert 'email' in spec['parameters']['properties']['user']['properties']
-    assert spec['parameters']['properties']['user']['required'] == ['name', 'age', 'email']
+    assert spec["parameters"]["properties"]["user"]["type"] == "object"
+    assert "name" in spec["parameters"]["properties"]["user"]["properties"]
+    assert "age" in spec["parameters"]["properties"]["user"]["properties"]
+    assert "email" in spec["parameters"]["properties"]["user"]["properties"]
+    assert spec["parameters"]["properties"]["user"]["required"] == [
+        "name",
+        "age",
+        "email",
+    ]
 
 
 def test_pydantic_model_with_other_params():
@@ -141,7 +149,7 @@ def test_pydantic_model_with_other_params():
 
     spec = json.loads(process_data.tool_spec)
     print(spec)
-    assert 'user' in spec['parameters']['properties']
-    assert 'data' in spec['parameters']['properties']
-    assert spec['parameters']['properties']['data']['type'] == 'array'
-    assert spec['parameters']['properties']['data']['items']['type'] == 'integer'
+    assert "user" in spec["parameters"]["properties"]
+    assert "data" in spec["parameters"]["properties"]
+    assert spec["parameters"]["properties"]["data"]["type"] == "array"
+    assert spec["parameters"]["properties"]["data"]["items"]["type"] == "integer"
