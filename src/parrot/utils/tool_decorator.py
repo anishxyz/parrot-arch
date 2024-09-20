@@ -22,7 +22,7 @@ def get_type_name(annotation):
         return "object"
     if isinstance(annotation, type) and issubclass(annotation, BaseModel):
         return "object"
-    return "string"  # Default to string for complex types
+    return "object"  # Default to object for complex types
 
 
 def get_pydantic_schema(model: Type[BaseModel]):

@@ -102,7 +102,7 @@ def test_tool_decorator_preserves_function():
     (bool, "boolean"),
     (List[int], "array"),
     (Dict[str, int], "object"),
-    (Any, "string"),
+    (Any, "object"),
 ])
 def test_type_inference(annotation, expected_type):
     @tool
