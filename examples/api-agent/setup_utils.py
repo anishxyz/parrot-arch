@@ -29,6 +29,8 @@ def setup_api_agent(openapi: Dict[str, Any]):
     edges = organize_resources(openapi, resources)
     graph = build_dependency_tree(edges)
     route_list = organize_routes(openapi, resources)
+    base_url = openapi['servers'][0]['url']
+    auth_pattern = openapi['components']['securitySchemes']
 
     init = dict(
         openapi=openapi,
@@ -36,6 +38,8 @@ def setup_api_agent(openapi: Dict[str, Any]):
         edges=edges,
         graph=graph,
         route_list=route_list,
+        base_url=base_url,
+        auth_pattern=auth_pattern,
     )
 
     return init
