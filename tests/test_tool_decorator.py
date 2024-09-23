@@ -148,7 +148,6 @@ def test_pydantic_model_with_other_params():
         pass
 
     spec = json.loads(process_data.tool_spec)
-    print(spec)
     assert "user" in spec["parameters"]["properties"]
     assert "data" in spec["parameters"]["properties"]
     assert spec["parameters"]["properties"]["data"]["type"] == "array"
