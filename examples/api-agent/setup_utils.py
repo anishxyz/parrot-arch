@@ -12,7 +12,6 @@ RESOURCE_BLACKLIST = [
     "cancel",
     "batch",
     "verify",
-    "process",
     "validate",
     "approve",
     "publish",
