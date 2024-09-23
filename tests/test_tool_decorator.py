@@ -1,7 +1,7 @@
 import json
 from typing import List, Dict, Any
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from src.parrot.utils import tool
 
 
@@ -165,3 +165,36 @@ def test_function_with_underscore_and_state_params():
     assert "state" not in spec["parameters"]["properties"]
     assert spec["parameters"]["properties"]["param1"]["type"] == "integer"
     assert spec["parameters"]["required"] == ["param1"]
+
+
+class TestModelWithDescriptions(BaseModel):
+    name: str = Field(..., description="The user's full name")
+    age: int = Field(..., description="The user's age in years")
+    email: str = Field(..., description="The user's email address")
+
+
+def test_pydantic_model_with_field_descriptions():
+    @tool
+    def process_user_with_descriptions(user: TestModelWithDescriptions):
+        """Process user information with field descriptions"""
+        pass
+
+    spec = json.loads(process_user_with_descriptions.tool_spec)
+
+    assert spec["parameters"]["properties"]["user"]["type"] == "object"
+    user_properties = spec["parameters"]["properties"]["user"]["properties"]
+
+    assert "name" in user_properties
+    assert user_properties["name"]["description"] == "The user's full name"
+
+    assert "age" in user_properties
+    assert user_properties["age"]["description"] == "The user's age in years"
+
+    assert "email" in user_properties
+    assert user_properties["email"]["description"] == "The user's email address"
+
+    assert spec["parameters"]["properties"]["user"]["required"] == [
+        "name",
+        "age",
+        "email",
+    ]
