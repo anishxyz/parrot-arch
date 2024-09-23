@@ -130,11 +130,10 @@ def test_pydantic_model():
         pass
 
     spec = json.loads(process_user.tool_spec)
-    assert spec["parameters"]["properties"]["user"]["type"] == "object"
-    assert "name" in spec["parameters"]["properties"]["user"]["properties"]
-    assert "age" in spec["parameters"]["properties"]["user"]["properties"]
-    assert "email" in spec["parameters"]["properties"]["user"]["properties"]
-    assert spec["parameters"]["properties"]["user"]["required"] == [
+    assert "name" in spec["parameters"]["properties"]
+    assert "age" in spec["parameters"]["properties"]
+    assert "email" in spec["parameters"]["properties"]
+    assert spec["parameters"]["required"] == [
         "name",
         "age",
         "email",
@@ -180,20 +179,18 @@ def test_pydantic_model_with_field_descriptions():
         pass
 
     spec = json.loads(process_user_with_descriptions.tool_spec)
+    properties = spec["parameters"]["properties"]
 
-    assert spec["parameters"]["properties"]["user"]["type"] == "object"
-    user_properties = spec["parameters"]["properties"]["user"]["properties"]
+    assert "name" in properties
+    assert properties["name"]["description"] == "The user's full name"
 
-    assert "name" in user_properties
-    assert user_properties["name"]["description"] == "The user's full name"
+    assert "age" in properties
+    assert properties["age"]["description"] == "The user's age in years"
 
-    assert "age" in user_properties
-    assert user_properties["age"]["description"] == "The user's age in years"
+    assert "email" in properties
+    assert properties["email"]["description"] == "The user's email address"
 
-    assert "email" in user_properties
-    assert user_properties["email"]["description"] == "The user's email address"
-
-    assert spec["parameters"]["properties"]["user"]["required"] == [
+    assert spec["parameters"]["required"] == [
         "name",
         "age",
         "email",

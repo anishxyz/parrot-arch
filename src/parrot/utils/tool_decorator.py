@@ -48,6 +48,17 @@ def tool(func):
         "parameters": {"type": "object", "properties": {}, "required": []},
     }
 
+    # Check if there's only one parameter and it's a Pydantic model
+    if len(params) == 1:
+        param_name, param = next(iter(params.items()))
+        if isinstance(param.annotation, type) and issubclass(
+            param.annotation, BaseModel
+        ):
+            model_schema = get_pydantic_schema(param.annotation)
+            tool_spec["parameters"] = model_schema
+            wrapper.tool_spec = json.dumps(tool_spec, indent=2)
+            return wrapper
+
     for name, param in params.items():
         if name.startswith("_") or name == "state":  # Skip these parameters
             continue
