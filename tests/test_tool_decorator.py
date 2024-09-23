@@ -153,3 +153,16 @@ def test_pydantic_model_with_other_params():
     assert "data" in spec["parameters"]["properties"]
     assert spec["parameters"]["properties"]["data"]["type"] == "array"
     assert spec["parameters"]["properties"]["data"]["items"]["type"] == "integer"
+
+
+def test_function_with_underscore_and_state_params():
+    @tool
+    def function_with_special_params(_ignored: str, state: dict, param1: int):
+        """A function with underscore and state parameters"""
+        pass
+
+    spec = json.loads(function_with_special_params.tool_spec)
+    assert "_ignored" not in spec["parameters"]["properties"]
+    assert "state" not in spec["parameters"]["properties"]
+    assert spec["parameters"]["properties"]["param1"]["type"] == "integer"
+    assert spec["parameters"]["required"] == ["param1"]
