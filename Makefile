@@ -12,6 +12,9 @@ SRC_DIR := src
 # Test directory
 TEST_DIR := tests
 
+# Examples directory
+EXAMPLES_DIR := examples
+
 # Default target
 .DEFAULT_GOAL := help
 
@@ -25,16 +28,16 @@ help:
 
 .PHONY: lint
 lint:
-	$(RUFF) check $(SRC_DIR) $(TEST_DIR)
+	$(RUFF) check $(SRC_DIR) $(TEST_DIR) $(EXAMPLES_DIR)
 
 .PHONY: format
 format:
-	$(RUFF) format $(SRC_DIR) $(TEST_DIR)
+	$(RUFF) format $(SRC_DIR) $(TEST_DIR) $(EXAMPLES_DIR)
 
 .PHONY: check
 check:
-	$(RUFF) check $(SRC_DIR) $(TEST_DIR)
-	$(RUFF) format --check $(SRC_DIR) $(TEST_DIR)
+	$(RUFF) check $(SRC_DIR) $(TEST_DIR) $(EXAMPLES_DIR)
+	$(RUFF) format --check $(SRC_DIR) $(TEST_DIR) $(EXAMPLES_DIR)
 
 .PHONY: all
 all: lint format
