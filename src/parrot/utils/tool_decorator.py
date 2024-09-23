@@ -49,7 +49,7 @@ def tool(func):
     }
 
     for name, param in params.items():
-        if name.startswith("_") or name == 'state':  # Skip these parameters
+        if name.startswith("_") or name == "state":  # Skip these parameters
             continue
 
         param_type = get_type_name(param.annotation)
