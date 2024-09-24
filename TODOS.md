@@ -5,4 +5,5 @@ TODOS:
 
 
 BACKLOG:  
+- [ ] Decide on tool response shape
 - [ ] Type hint tools to return dictionaries
