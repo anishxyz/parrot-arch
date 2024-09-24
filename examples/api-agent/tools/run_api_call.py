@@ -6,7 +6,9 @@ from pydantic import BaseModel, Field
 
 class APICallRunnerInputs(BaseModel):
     path: str = Field(description="Relative route for request")
-    method: Literal["POST", "GET", "PATCH", "DELETE", "PUT"] = Field(description="HTTP method for request")
+    method: Literal["POST", "GET", "PATCH", "DELETE", "PUT"] = Field(
+        description="HTTP method for request"
+    )
     payload: Optional[dict] = Field(default=None, description="Payload for request")
 
 
@@ -27,7 +29,7 @@ def run_api_call(runner_input: APICallRunnerInputs, state: dict):
                 method=runner_input.method,
                 url=url,
                 headers=headers,
-                json=runner_input.payload
+                json=runner_input.payload,
             )
 
         response.raise_for_status()
@@ -42,11 +44,7 @@ def run_api_call(runner_input: APICallRunnerInputs, state: dict):
         return {
             "error": str(e),
             "status_code": e.response.status_code,
-            "data": e.response.text
+            "data": e.response.text,
         }
     except httpx.RequestError as e:
-        return {
-            "error": str(e),
-            "status_code": None,
-            "data": None
-        }
+        return {"error": str(e), "status_code": None, "data": None}
