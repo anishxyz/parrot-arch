@@ -7,6 +7,11 @@ from src.parrot.utils import tool
 
 @tool
 def get_dependencies_for_resource(resource: str, state: dict):
+    """
+    Returns a dependency tree of resources for the target resource.
+
+    Note: All resources are often not necessarily required
+    """
     subtree_string = resource_subtree_string(state["graph"], resource)
 
     return subtree_string
@@ -52,14 +57,26 @@ def resource_subtree_string(graph: nx.DiGraph, root_node: str) -> str:
 
     def create_tree(nodes):
         for node in nodes:
-            node_name = str(node).lstrip('/')
+            node_name = str(node).lstrip("/")
             if node not in node_dict:
-                parent = next((node_dict[parent] for parent in graph.predecessors(node)
-                               if parent in node_dict), None)
+                parent = next(
+                    (
+                        node_dict[parent]
+                        for parent in graph.predecessors(node)
+                        if parent in node_dict
+                    ),
+                    None,
+                )
                 node_dict[node] = Node(node_name, parent=parent)
             else:
-                parent = next((node_dict[parent] for parent in graph.predecessors(node)
-                               if parent in node_dict), None)
+                parent = next(
+                    (
+                        node_dict[parent]
+                        for parent in graph.predecessors(node)
+                        if parent in node_dict
+                    ),
+                    None,
+                )
                 if parent and parent is not node_dict[node].parent:
                     Node(f"{node_name}_dup", parent=parent)
 
