@@ -14,9 +14,7 @@ class APICallRunnerInputs(BaseModel):
 
 @tool
 def run_api_call(runner_input: APICallRunnerInputs, state: dict):
-    """
-    This tool returns a list of the resources from the REST API. You may assume the headers and base url will be injected automatically.
-    """
+    """This tool returns a list of the resources from the REST API. You may assume the headers and base url will be injected automatically."""
 
     base_url = state["base_url"]
     headers = state["headers"]
