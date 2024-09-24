@@ -56,7 +56,7 @@ def tool(func):
         ):
             model_schema = get_pydantic_schema(param.annotation)
             tool_spec["parameters"] = model_schema
-            wrapper.tool_spec = tool_spec
+            wrapper.tool_schema = tool_spec
             return wrapper
 
     for name, param in params.items():
@@ -89,5 +89,5 @@ def tool(func):
         if param.default == inspect.Parameter.empty:
             tool_spec["parameters"]["required"].append(name)
 
-    wrapper.tool_spec = tool_spec
+    wrapper.tool_schema = tool_spec
     return wrapper
