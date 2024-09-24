@@ -167,7 +167,9 @@ def organize_routes(openapi, resources):
         defn = {"path": path, "methods": {}, "resources": []}
 
         for m, details in methods.items():
-            defn["methods"][m] = {"description": details.get("description")}
+            defn["methods"][m] = {
+                "description": details.get("description", "No description available")
+            }
 
         path_segments = [standardize(seg) for seg in path.split("/") if seg]
         resource_stack = [seg for seg in path_segments if seg in resources]
