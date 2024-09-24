@@ -11,7 +11,7 @@ def test_basic_function():
         """A simple function with two parameters"""
         pass
 
-    spec = json.loads(simple_function.tool_spec)
+    spec = simple_function.tool_spec
     assert spec["name"] == "simple_function"
     assert spec["description"] == "A simple function with two parameters"
     assert spec["parameters"]["properties"]["param1"]["type"] == "string"
@@ -25,7 +25,7 @@ def test_function_with_default_values():
         """A function with a default value"""
         pass
 
-    spec = json.loads(function_with_defaults.tool_spec)
+    spec = function_with_defaults.tool_spec
     assert spec["parameters"]["required"] == ["param1"]
 
 
@@ -35,7 +35,7 @@ def test_function_with_complex_types():
         """A function with complex types"""
         pass
 
-    spec = json.loads(complex_function.tool_spec)
+    spec = complex_function.tool_spec
     assert spec["parameters"]["properties"]["param1"]["type"] == "array"
     assert spec["parameters"]["properties"]["param1"]["items"]["type"] == "string"
     assert spec["parameters"]["properties"]["param2"]["type"] == "object"
@@ -47,7 +47,7 @@ def test_function_with_underscore_params():
         """A function with an underscore parameter"""
         pass
 
-    spec = json.loads(function_with_underscore.tool_spec)
+    spec = function_with_underscore.tool_spec
     assert "_ignored" not in spec["parameters"]["properties"]
     assert spec["parameters"]["properties"]["param1"]["type"] == "integer"
 
@@ -58,7 +58,7 @@ def test_function_without_annotations():
         """A function without type annotations"""
         pass
 
-    spec = json.loads(no_annotations.tool_spec)
+    spec = no_annotations.tool_spec
     assert spec["parameters"]["properties"]["param1"]["type"] == "string"
     assert spec["parameters"]["properties"]["param2"]["type"] == "string"
 
@@ -69,7 +69,7 @@ def test_function_with_docstring():
         """This is a test docstring"""
         pass
 
-    spec = json.loads(docstring_function.tool_spec)
+    spec = docstring_function.tool_spec
     assert spec["description"] == "This is a test docstring"
 
 
@@ -78,7 +78,7 @@ def test_function_without_docstring():
     def no_docstring():
         pass
 
-    spec = json.loads(no_docstring.tool_spec)
+    spec = no_docstring.tool_spec
     assert spec["description"] == "Executes the no_docstring function"
 
 
@@ -113,23 +113,23 @@ def test_type_inference(annotation, expected_type):
     def type_test(param: annotation):
         pass
 
-    spec = json.loads(type_test.tool_spec)
+    spec = type_test.tool_spec
     assert spec["parameters"]["properties"]["param"]["type"] == expected_type
 
 
-class TestModel(BaseModel):
-    name: str
-    age: int
-    email: str
-
-
 def test_pydantic_model():
+    class TestModel(BaseModel):
+        name: str
+        age: int
+        email: str
+
     @tool
     def process_user(user: TestModel):
         """Process user information"""
         pass
 
-    spec = json.loads(process_user.tool_spec)
+    spec = process_user.tool_spec
+
     assert "name" in spec["parameters"]["properties"]
     assert "age" in spec["parameters"]["properties"]
     assert "email" in spec["parameters"]["properties"]
@@ -141,12 +141,17 @@ def test_pydantic_model():
 
 
 def test_pydantic_model_with_other_params():
+    class TestModel(BaseModel):
+        name: str
+        age: int
+        email: str
+
     @tool
     def process_data(user: TestModel, data: List[int]):
         """Process user and data"""
         pass
 
-    spec = json.loads(process_data.tool_spec)
+    spec = process_data.tool_spec
     assert "user" in spec["parameters"]["properties"]
     assert "data" in spec["parameters"]["properties"]
     assert spec["parameters"]["properties"]["data"]["type"] == "array"
@@ -159,26 +164,25 @@ def test_function_with_underscore_and_state_params():
         """A function with underscore and state parameters"""
         pass
 
-    spec = json.loads(function_with_special_params.tool_spec)
+    spec = function_with_special_params.tool_spec
     assert "_ignored" not in spec["parameters"]["properties"]
     assert "state" not in spec["parameters"]["properties"]
     assert spec["parameters"]["properties"]["param1"]["type"] == "integer"
     assert spec["parameters"]["required"] == ["param1"]
 
 
-class TestModelWithDescriptions(BaseModel):
-    name: str = Field(..., description="The user's full name")
-    age: int = Field(..., description="The user's age in years")
-    email: str = Field(..., description="The user's email address")
-
-
 def test_pydantic_model_with_field_descriptions():
+    class TestModelWithDescriptions(BaseModel):
+        name: str = Field(..., description="The user's full name")
+        age: int = Field(..., description="The user's age in years")
+        email: str = Field(..., description="The user's email address")
+
     @tool
     def process_user_with_descriptions(user: TestModelWithDescriptions):
         """Process user information with field descriptions"""
         pass
 
-    spec = json.loads(process_user_with_descriptions.tool_spec)
+    spec = process_user_with_descriptions.tool_spec
     properties = spec["parameters"]["properties"]
 
     assert "name" in properties
@@ -195,3 +199,44 @@ def test_pydantic_model_with_field_descriptions():
         "age",
         "email",
     ]
+
+
+def test_wraps_output_base_model():
+    # setup
+    class TestUserModel(BaseModel):
+        name: str
+        age: int
+
+    @tool
+    def process_user_return_base_model(user: TestUserModel):
+        """Process user information and return a string"""
+        return user
+
+    user = TestUserModel(name="Alice", age=30)
+    result = process_user_return_base_model(user).to_dict
+
+    # Check that the result is a dictionary
+    assert isinstance(result, dict)
+    assert result["name"] == "Alice"
+    assert result["age"] == 30
+
+
+def test_wraps_output_string():
+    # setup
+    class TestUserModel(BaseModel):
+        name: str
+        age: int
+
+    @tool
+    def process_user_return_string(user: TestUserModel) -> str:
+        """Process user information and return a string"""
+        return f"User {user.name} is {user.age} years old"
+
+    # Test the function execution
+    user = TestUserModel(name="Alice", age=30)
+    result = process_user_return_string(user)
+
+    # Check that the result is a dictionary
+    assert isinstance(result, dict)
+    assert "result" in result
+    assert result["result"] == "User Alice is 30 years old"

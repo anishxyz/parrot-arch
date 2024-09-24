@@ -36,18 +36,8 @@ def get_pydantic_schema(model: Type[BaseModel]):
 
 def tool(func):
     @wraps(func)
-    def wrapper(*args, **kwargs) -> Dict[str, Any]:
-        result = func(*args, **kwargs)
-
-        # Ensure the result is a dictionary
-        if not isinstance(result, dict):
-            result = {"result": result}
-
-        # If it's a Pydantic model, convert it to a dict
-        if isinstance(result, BaseModel):
-            result = result.model_dump()
-
-        return result
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
 
     sig = inspect.signature(func)
     params = sig.parameters
@@ -66,7 +56,7 @@ def tool(func):
         ):
             model_schema = get_pydantic_schema(param.annotation)
             tool_spec["parameters"] = model_schema
-            wrapper.tool_spec = json.dumps(tool_spec, indent=2)
+            wrapper.tool_spec = tool_spec
             return wrapper
 
     for name, param in params.items():
@@ -99,5 +89,5 @@ def tool(func):
         if param.default == inspect.Parameter.empty:
             tool_spec["parameters"]["required"].append(name)
 
-    wrapper.tool_spec = json.dumps(tool_spec, indent=2)
+    wrapper.tool_spec = tool_spec
     return wrapper
