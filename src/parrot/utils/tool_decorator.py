@@ -1,7 +1,7 @@
 import inspect
 from functools import wraps
 import json
-from typing import get_origin, get_args, Type
+from typing import get_origin, get_args, Type, Dict, Any
 from pydantic import BaseModel
 
 
@@ -36,8 +36,18 @@ def get_pydantic_schema(model: Type[BaseModel]):
 
 def tool(func):
     @wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
+    def wrapper(*args, **kwargs) -> Dict[str, Any]:
+        result = func(*args, **kwargs)
+
+        # Ensure the result is a dictionary
+        if not isinstance(result, dict):
+            result = {"result": result}
+
+        # If it's a Pydantic model, convert it to a dict
+        if isinstance(result, BaseModel):
+            result = result.model_dump()
+
+        return result
 
     sig = inspect.signature(func)
     params = sig.parameters
