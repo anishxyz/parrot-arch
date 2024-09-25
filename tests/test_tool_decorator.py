@@ -2,7 +2,7 @@ import json
 from typing import List, Dict, Any
 import pytest
 from pydantic import BaseModel, Field
-from src.parrot.utils import tool
+from src.parrot import tool
 
 
 def test_basic_function():

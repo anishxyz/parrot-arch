@@ -1,6 +1,6 @@
 from typing import Literal, Optional
 import httpx
-from src.parrot.utils import tool
+from src.parrot import tool
 from pydantic import BaseModel, Field
 
 

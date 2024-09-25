@@ -2,7 +2,7 @@ from io import StringIO
 from anytree import Node, RenderTree
 import networkx as nx
 
-from src.parrot.utils import tool
+from src.parrot import tool
 
 
 @tool

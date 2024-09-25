@@ -1,6 +1,6 @@
 import textwrap
 
-from src.parrot.utils import tool
+from src.parrot import tool
 
 
 @tool
