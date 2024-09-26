@@ -1,7 +1,5 @@
 from typing import List, Optional
 
-from pydantic import Field
-
 from ._utils import validate_tools
 from .model_runner import ModelRunner, ModelInferenceParams
 
@@ -23,7 +21,7 @@ class ToolRunner:
         self,
         tools,
         user_prompt: Optional[str] = None,
-        context: List[dict] = Field(default_factory=list),
+        context: List[dict] = None,
     ):
         tool_validation = validate_tools(tools)
         if not tool_validation["valid"]:
