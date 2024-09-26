@@ -19,9 +19,9 @@ def validate_tools(tools: List[Callable]) -> Dict[str, Union[bool, List[str]]]:
             callable(func)
             and hasattr(func, "tool_schema")
             and isinstance(func.tool_schema, dict)
-            and all(
-                key in func.tool_schema for key in ["name", "description", "parameters"]
-            )
+            and func.tool_schema.get("type") == "function"
+            and "function" in func.tool_schema
+            and isinstance(func.tool_schema["function"], dict)
         )
 
     invalid_tools = [tool.__name__ for tool in tools if not is_valid_tool(tool)]
