@@ -1,8 +1,6 @@
-import os
-from typing import List, Optional, Union, Type, Literal, Dict
+from typing import List, Optional
 
-import httpx
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from ._utils import validate_tools
 from .model_runner import ModelRunner, ModelInferenceParams
@@ -14,18 +12,14 @@ class ToolRunnerModelParams(ModelInferenceParams):
 
 
 class ToolRunner:
-    def __init__(
-        self,
-        model: str,
-        parallel_tool_calls: Optional[bool] = None
-    ):
+    def __init__(self, model: str, parallel_tool_calls: Optional[bool] = None):
         self.model_runner = ModelRunner()
         self.context = []
         self.tools = []
         self.model = model
         self.parallel_tool_calls = parallel_tool_calls
 
-    def kickoff(
+    def run(
         self,
         tools,
         user_prompt: Optional[str] = None,
@@ -49,5 +43,5 @@ class ToolRunner:
             model=self.model,
             messages=self.context,
             tools=[tool.tool_schema for tool in self.tools],
-            parallel_tool_calls=self.parallel_tool_calls
+            parallel_tool_calls=self.parallel_tool_calls,
         )
