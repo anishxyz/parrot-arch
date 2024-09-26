@@ -4,7 +4,7 @@ from typing import Optional, Dict
 
 import litellm
 
-from ..model_runner import ModelInferenceParams
+from ..types.model_inference_params import ModelInferenceParams
 
 
 class AbstractModelGateway(ABC):
