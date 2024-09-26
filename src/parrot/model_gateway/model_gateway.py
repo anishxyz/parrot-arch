@@ -1,7 +1,9 @@
+import os
 from abc import ABC, abstractmethod
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
 from pydantic import BaseModel, Field
+import litellm
 
 
 class ModelGatewayInput(BaseModel):
@@ -47,18 +49,22 @@ class ModelGatewayInput(BaseModel):
 
 class AbstractModelGateway(ABC):
     @abstractmethod
-    def inference(self, input_data: ModelGatewayInput):
+    def inference(self, input_params: ModelGatewayInput):
         pass
 
 
 class LiteLLMGateway(AbstractModelGateway):
-    def inference(self, input_data: ModelGatewayInput):
-        pass
+    def inference(self, input_params: ModelGatewayInput):
+        return litellm.completion(**input_params.model_dump())
 
 
 class ModelGatewayFactory:
     @staticmethod
-    def create_gateway(provider: str) -> AbstractModelGateway:
+    def create_gateway(provider: str, env_vars: Optional[Dict[str, str]]) -> AbstractModelGateway:
+        if env_vars:
+            for k, v in env_vars:
+                os.environ[k] = v
+
         if provider == "litellm":
             return LiteLLMGateway()
         else:
