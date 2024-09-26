@@ -11,7 +11,7 @@ def test_basic_function():
         """A simple function with two parameters"""
         pass
 
-    spec = simple_function.tool_schema
+    spec = simple_function.tool_schema["function"]
     assert spec["name"] == "simple_function"
     assert spec["description"] == "A simple function with two parameters"
     assert spec["parameters"]["properties"]["param1"]["type"] == "string"
@@ -25,7 +25,7 @@ def test_function_with_default_values():
         """A function with a default value"""
         pass
 
-    spec = function_with_defaults.tool_schema
+    spec = function_with_defaults.tool_schema["function"]
     assert spec["parameters"]["required"] == ["param1"]
 
 
@@ -35,7 +35,7 @@ def test_function_with_complex_types():
         """A function with complex types"""
         pass
 
-    spec = complex_function.tool_schema
+    spec = complex_function.tool_schema["function"]
     assert spec["parameters"]["properties"]["param1"]["type"] == "array"
     assert spec["parameters"]["properties"]["param1"]["items"]["type"] == "string"
     assert spec["parameters"]["properties"]["param2"]["type"] == "object"
@@ -47,7 +47,7 @@ def test_function_with_underscore_params():
         """A function with an underscore parameter"""
         pass
 
-    spec = function_with_underscore.tool_schema
+    spec = function_with_underscore.tool_schema["function"]
     assert "_ignored" not in spec["parameters"]["properties"]
     assert spec["parameters"]["properties"]["param1"]["type"] == "integer"
 
@@ -58,7 +58,7 @@ def test_function_without_annotations():
         """A function without type annotations"""
         pass
 
-    spec = no_annotations.tool_schema
+    spec = no_annotations.tool_schema["function"]
     assert spec["parameters"]["properties"]["param1"]["type"] == "string"
     assert spec["parameters"]["properties"]["param2"]["type"] == "string"
 
@@ -69,7 +69,7 @@ def test_function_with_docstring():
         """This is a test docstring"""
         pass
 
-    spec = docstring_function.tool_schema
+    spec = docstring_function.tool_schema["function"]
     assert spec["description"] == "This is a test docstring"
 
 
@@ -78,7 +78,7 @@ def test_function_without_docstring():
     def no_docstring():
         pass
 
-    spec = no_docstring.tool_schema
+    spec = no_docstring.tool_schema["function"]
     assert spec["description"] == "Executes the no_docstring function"
 
 
@@ -113,7 +113,7 @@ def test_type_inference(annotation, expected_type):
     def type_test(param: annotation):
         pass
 
-    spec = type_test.tool_schema
+    spec = type_test.tool_schema["function"]
     assert spec["parameters"]["properties"]["param"]["type"] == expected_type
 
 
@@ -128,7 +128,7 @@ def test_pydantic_model():
         """Process user information"""
         pass
 
-    spec = process_user.tool_schema
+    spec = process_user.tool_schema["function"]
 
     assert "name" in spec["parameters"]["properties"]
     assert "age" in spec["parameters"]["properties"]
@@ -151,7 +151,7 @@ def test_pydantic_model_with_other_params():
         """Process user and data"""
         pass
 
-    spec = process_data.tool_schema
+    spec = process_data.tool_schema["function"]
     assert "user" in spec["parameters"]["properties"]
     assert "data" in spec["parameters"]["properties"]
     assert spec["parameters"]["properties"]["data"]["type"] == "array"
@@ -164,7 +164,7 @@ def test_function_with_underscore_and_state_params():
         """A function with underscore and state parameters"""
         pass
 
-    spec = function_with_special_params.tool_schema
+    spec = function_with_special_params.tool_schema["function"]
     assert "_ignored" not in spec["parameters"]["properties"]
     assert "state" not in spec["parameters"]["properties"]
     assert spec["parameters"]["properties"]["param1"]["type"] == "integer"
@@ -182,7 +182,7 @@ def test_pydantic_model_with_field_descriptions():
         """Process user information with field descriptions"""
         pass
 
-    spec = process_user_with_descriptions.tool_schema
+    spec = process_user_with_descriptions.tool_schema["function"]
     properties = spec["parameters"]["properties"]
 
     assert "name" in properties
@@ -199,44 +199,3 @@ def test_pydantic_model_with_field_descriptions():
         "age",
         "email",
     ]
-
-
-# def test_wraps_output_base_model():
-#     # setup
-#     class TestUserModel(BaseModel):
-#         name: str
-#         age: int
-#
-#     @tool
-#     def process_user_return_base_model(user: TestUserModel):
-#         """Process user information and return a string"""
-#         return user
-#
-#     user = TestUserModel(name="Alice", age=30)
-#     result = process_user_return_base_model(user).to_dict
-#
-#     # Check that the result is a dictionary
-#     assert isinstance(result, dict)
-#     assert result["name"] == "Alice"
-#     assert result["age"] == 30
-#
-#
-# def test_wraps_output_string():
-#     # setup
-#     class TestUserModel(BaseModel):
-#         name: str
-#         age: int
-#
-#     @tool
-#     def process_user_return_string(user: TestUserModel) -> str:
-#         """Process user information and return a string"""
-#         return f"User {user.name} is {user.age} years old"
-#
-#     # Test the function execution
-#     user = TestUserModel(name="Alice", age=30)
-#     result = process_user_return_string(user)
-#
-#     # Check that the result is a dictionary
-#     assert isinstance(result, dict)
-#     assert "result" in result
-#     assert result["result"] == "User Alice is 30 years old"
