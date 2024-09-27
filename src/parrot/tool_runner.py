@@ -15,7 +15,9 @@ class ToolRunnerModelParams(ModelInferenceParams):
 
 
 class ToolRunner:
-    def __init__(self, model: str, state: dict, parallel_tool_calls: Optional[bool] = None):
+    def __init__(
+        self, model: str, state: dict, parallel_tool_calls: Optional[bool] = None
+    ):
         self.model_runner = ModelRunner()
         self.context = []
         self.tools = []
@@ -89,16 +91,35 @@ class ToolRunner:
                 tc_response = {
                     "role": "tool",
                     "content": str(tc_content),
-                    "tool_call_id": tc_id
+                    "tool_call_id": tc_id,
                 }
 
                 self.context.append(tc_response)
                 pprint(tc_response)
 
 
+def find_value_in_nested_dict(d: Dict[str, Any], key: str) -> Any:
+    """
+    Recursively search for a key in a nested dictionary structure.
+
+    :param d: The dictionary to search
+    :param key: The key to find
+    :return: The value if found, None otherwise
+    """
+    if key in d:
+        return d[key]
+    for v in d.values():
+        if isinstance(v, dict):
+            result = find_value_in_nested_dict(v, key)
+            if result is not None:
+                return result
+    return None
+
+
 def auto_format_inputs(func: Callable, inputs: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Automatically format inputs based on the function's signature.
+    Automatically format inputs based on the function's signature,
+    handling arbitrary nesting in the input dictionary.
 
     :param func: The target function
     :param inputs: The input dictionary
@@ -108,14 +129,13 @@ def auto_format_inputs(func: Callable, inputs: Dict[str, Any]) -> Dict[str, Any]
     formatted_inputs = {}
 
     for param_name, param in sig.parameters.items():
-        if param_name == 'state':
+        if param_name == "state":
             continue  # Skip the 'state' parameter as it's handled separately
 
-        if param_name in inputs:
-            param_value = inputs[param_name]
-        elif param_name in inputs.get('runner_input', {}):
-            param_value = inputs['runner_input'][param_name]
-        else:
+        # Search for the parameter value in the nested structure
+        param_value = find_value_in_nested_dict(inputs, param_name)
+
+        if param_value is None:
             # Use default value if available, otherwise raise an error
             if param.default is not param.empty:
                 param_value = param.default
@@ -123,13 +143,17 @@ def auto_format_inputs(func: Callable, inputs: Dict[str, Any]) -> Dict[str, Any]
                 raise ValueError(f"Missing required input: {param_name}")
 
         # If the parameter is annotated with a Pydantic model, instantiate it
-        if isinstance(param.annotation, type) and issubclass(param.annotation, BaseModel):
+        if isinstance(param.annotation, type) and issubclass(
+            param.annotation, BaseModel
+        ):
             if isinstance(param_value, dict):
                 formatted_inputs[param_name] = param.annotation(**param_value)
             elif isinstance(param_value, param.annotation):
                 formatted_inputs[param_name] = param_value
             else:
-                raise TypeError(f"Invalid type for {param_name}. Expected {param.annotation}, got {type(param_value)}")
+                raise TypeError(
+                    f"Invalid type for {param_name}. Expected {param.annotation}, got {type(param_value)}"
+                )
         else:
             formatted_inputs[param_name] = param_value
 

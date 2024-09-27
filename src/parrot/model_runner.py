@@ -11,7 +11,9 @@ from .types.model_inference_params import ModelInferenceParams
 
 class ModelRunner:
     @overload
-    def inference(self, params: ModelInferenceParams) -> Union[ModelResponse, CustomStreamWrapper]: ...
+    def inference(
+        self, params: ModelInferenceParams
+    ) -> Union[ModelResponse, CustomStreamWrapper]: ...
 
     @overload
     def inference(

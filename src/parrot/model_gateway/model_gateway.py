@@ -11,12 +11,16 @@ from ..types.model_inference_params import ModelInferenceParams
 
 class AbstractModelGateway(ABC):
     @abstractmethod
-    def inference(self, params: ModelInferenceParams) -> Union[ModelResponse, CustomStreamWrapper]:
+    def inference(
+        self, params: ModelInferenceParams
+    ) -> Union[ModelResponse, CustomStreamWrapper]:
         pass
 
 
 class LiteLLMGateway(AbstractModelGateway):
-    def inference(self, params: ModelInferenceParams) -> Union[ModelResponse, CustomStreamWrapper]:
+    def inference(
+        self, params: ModelInferenceParams
+    ) -> Union[ModelResponse, CustomStreamWrapper]:
         return litellm.completion(**params.model_dump())
 
 
