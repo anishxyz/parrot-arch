@@ -2,9 +2,11 @@ from pprint import pprint
 
 from dotenv import load_dotenv
 
-from src.parrot.tool_runner import ToolRunner
 from examples.api_agent.tools.get_resources import get_resources
-from examples.api_agent.tools.get_dependencies_for_resource import get_dependencies_for_resource
+from src.parrot.tool_runner import ToolRunner
+from examples.api_agent.tools.get_dependencies_for_resource import (
+    get_dependencies_for_resource,
+)
 from examples.api_agent.tools.get_route_definition import get_route_definition
 from examples.api_agent.tools.get_routes_for_resource import get_routes_for_resource
 from examples.api_agent.tools.run_api_call import run_api_call
