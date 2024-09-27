@@ -1,3 +1,5 @@
+import json
+from pprint import pprint
 from typing import List, Optional
 
 from ._utils import validate_tools
@@ -10,12 +12,13 @@ class ToolRunnerModelParams(ModelInferenceParams):
 
 
 class ToolRunner:
-    def __init__(self, model: str, parallel_tool_calls: Optional[bool] = None):
+    def __init__(self, model: str, state: dict, parallel_tool_calls: Optional[bool] = None):
         self.model_runner = ModelRunner()
         self.context = []
         self.tools = []
         self.model = model
         self.parallel_tool_calls = parallel_tool_calls
+        self.state = state
 
     def run(
         self,
@@ -37,9 +40,52 @@ class ToolRunner:
         )
         self.tools = tools
 
-        return self.model_runner.inference(
-            model=self.model,
-            messages=self.context,
-            tools=[tool.tool_schema for tool in self.tools],
-            parallel_tool_calls=self.parallel_tool_calls,
-        )
+        tool_map = {tool.__name__: tool for tool in tools}
+
+        pprint(self.context)
+
+        while True:
+            response = self.model_runner.inference(
+                model=self.model,
+                messages=self.context,
+                tools=[tool.tool_schema for tool in self.tools],
+                parallel_tool_calls=self.parallel_tool_calls,
+            )
+
+            last_msg = response.choices[-1].message
+            self.context.append(dict(last_msg))
+
+            pprint(last_msg)
+
+            tool_calls = last_msg.tool_calls
+            if len(tool_calls) == 0:
+                return self.context
+
+            for tc in tool_calls:
+                tc_id = tc.id
+                tc_type = tc.type
+                tc_func = tc.function.name
+                tc_args = json.loads(tc.function.arguments)
+
+                try:
+                    tgt_tool = tool_map.get(tc_func)
+                    if tgt_tool is None:
+                        raise KeyError(f"Tool '{tc_func}' not found in tools")
+                    tc_content = tgt_tool(**tc_args)
+                except KeyError:
+                    tc_content = f"Tool '{tc_func}' not found in tools"
+                except TypeError as e:
+                    # Handle the case where the inputs don't match the function signature
+                    tc_content = f"Error: Invalid inputs for '{tc_func}'. {str(e)}"
+                except Exception as e:
+                    # Handle any other unexpected errors
+                    tc_content = f"Unexpected error occurred while executing '{tc_func}': {str(e)}"
+
+                tc_response = {
+                    "role": "tool",
+                    "content": str(tc_content),
+                    "tool_call_id": tc_id
+                }
+
+                self.context.append(tc_response)
+                pprint(tc_response)
