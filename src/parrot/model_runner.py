@@ -1,6 +1,8 @@
 from typing import List, Optional, Union, Type, Literal, Dict, overload
 
 import httpx
+from litellm import CustomStreamWrapper
+from litellm.types.utils import ModelResponse
 from pydantic import BaseModel, Field
 
 from .model_gateway.model_gateway import ModelGatewayFactory
@@ -9,7 +11,7 @@ from .types.model_inference_params import ModelInferenceParams
 
 class ModelRunner:
     @overload
-    def inference(self, params: ModelInferenceParams): ...
+    def inference(self, params: ModelInferenceParams) -> Union[ModelResponse, CustomStreamWrapper]: ...
 
     @overload
     def inference(
@@ -48,9 +50,9 @@ class ModelRunner:
         # parrot specific
         provider: Literal["litellm"] = "litellm",  # model gateway demux
         env_vars: Optional[Dict[str, str]] = None,  # added
-    ): ...
+    ) -> Union[ModelResponse, CustomStreamWrapper]: ...
 
-    def inference(self, *args, **kwargs):
+    def inference(self, *args, **kwargs) -> Union[ModelResponse, CustomStreamWrapper]:
         if len(args) == 1 and isinstance(args[0], ModelInferenceParams):
             input_params = args[0]
             provider = kwargs.get("provider", "litellm")

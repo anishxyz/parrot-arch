@@ -1,20 +1,22 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Optional, Dict
+from typing import Optional, Dict, Union
 
 import litellm
+from litellm import CustomStreamWrapper
+from litellm.types.utils import ModelResponse
 
 from ..types.model_inference_params import ModelInferenceParams
 
 
 class AbstractModelGateway(ABC):
     @abstractmethod
-    def inference(self, params: ModelInferenceParams):
+    def inference(self, params: ModelInferenceParams) -> Union[ModelResponse, CustomStreamWrapper]:
         pass
 
 
 class LiteLLMGateway(AbstractModelGateway):
-    def inference(self, params: ModelInferenceParams):
+    def inference(self, params: ModelInferenceParams) -> Union[ModelResponse, CustomStreamWrapper]:
         return litellm.completion(**params.model_dump())
 
 
