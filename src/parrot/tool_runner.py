@@ -1,6 +1,9 @@
+import inspect
 import json
 from pprint import pprint
-from typing import List, Optional
+from typing import List, Optional, Dict, Callable, Any
+
+from pydantic import BaseModel
 
 from ._utils import validate_tools
 from .model_runner import ModelRunner, ModelInferenceParams
@@ -71,7 +74,9 @@ class ToolRunner:
                     tgt_tool = tool_map.get(tc_func)
                     if tgt_tool is None:
                         raise KeyError(f"Tool '{tc_func}' not found in tools")
-                    tc_content = tgt_tool(state=self.state, **tc_args)
+
+                    formatted_args = auto_format_inputs(tgt_tool, tc_args)
+                    tc_content = tgt_tool(state=self.state, **formatted_args)
                 except KeyError:
                     tc_content = f"Tool '{tc_func}' not found in tools"
                 except TypeError as e:
@@ -89,3 +94,43 @@ class ToolRunner:
 
                 self.context.append(tc_response)
                 pprint(tc_response)
+
+
+def auto_format_inputs(func: Callable, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Automatically format inputs based on the function's signature.
+
+    :param func: The target function
+    :param inputs: The input dictionary
+    :return: Formatted inputs dictionary
+    """
+    sig = inspect.signature(func)
+    formatted_inputs = {}
+
+    for param_name, param in sig.parameters.items():
+        if param_name == 'state':
+            continue  # Skip the 'state' parameter as it's handled separately
+
+        if param_name in inputs:
+            param_value = inputs[param_name]
+        elif param_name in inputs.get('runner_input', {}):
+            param_value = inputs['runner_input'][param_name]
+        else:
+            # Use default value if available, otherwise raise an error
+            if param.default is not param.empty:
+                param_value = param.default
+            else:
+                raise ValueError(f"Missing required input: {param_name}")
+
+        # If the parameter is annotated with a Pydantic model, instantiate it
+        if isinstance(param.annotation, type) and issubclass(param.annotation, BaseModel):
+            if isinstance(param_value, dict):
+                formatted_inputs[param_name] = param.annotation(**param_value)
+            elif isinstance(param_value, param.annotation):
+                formatted_inputs[param_name] = param_value
+            else:
+                raise TypeError(f"Invalid type for {param_name}. Expected {param.annotation}, got {type(param_value)}")
+        else:
+            formatted_inputs[param_name] = param_value
+
+    return formatted_inputs
