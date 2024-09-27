@@ -58,7 +58,7 @@ class ToolRunner:
             pprint(last_msg)
 
             tool_calls = last_msg.tool_calls
-            if len(tool_calls) == 0:
+            if tool_calls is None or len(tool_calls) == 0:
                 return self.context
 
             for tc in tool_calls:
@@ -71,7 +71,7 @@ class ToolRunner:
                     tgt_tool = tool_map.get(tc_func)
                     if tgt_tool is None:
                         raise KeyError(f"Tool '{tc_func}' not found in tools")
-                    tc_content = tgt_tool(**tc_args)
+                    tc_content = tgt_tool(state=self.state, **tc_args)
                 except KeyError:
                     tc_content = f"Tool '{tc_func}' not found in tools"
                 except TypeError as e:

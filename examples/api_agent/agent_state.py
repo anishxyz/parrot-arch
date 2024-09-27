@@ -67,6 +67,9 @@ def extract_resources(openapi: Dict[str, Any]) -> List[str]:
 
 
 def standardize(name: str) -> str:
+    if not name:
+        return name
+
     # ignored words for singularization
     invariant_words = {"synthesis", "analysis", "basis", "thesis", "process"}
 
@@ -79,7 +82,7 @@ def standardize(name: str) -> str:
     # singularize
     p = engine()
     parts = [
-        part if part in invariant_words else (p.singular_noun(part) or part)
+        part if part in invariant_words else (p.singular_noun(text=part) or part)
         for part in parts
     ]
 
