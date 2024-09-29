@@ -1,1 +1,1 @@
-a mew agent architecture
+a new agent architecture
