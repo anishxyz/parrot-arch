@@ -15,6 +15,7 @@ class ToolRunnerModelParams(ModelInferenceParams):
 
 
 class ToolRunner:
+
     def __init__(
         self, model: str, state: dict, parallel_tool_calls: Optional[bool] = None
     ):
@@ -24,6 +25,7 @@ class ToolRunner:
         self.model = model
         self.parallel_tool_calls = parallel_tool_calls
         self.state = state
+        self.usage = []
 
     def run(
         self,
