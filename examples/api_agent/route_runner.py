@@ -1,4 +1,5 @@
 import json
+import os
 from pprint import pprint
 from typing import Dict, Any
 
@@ -84,13 +85,13 @@ apis = {
     "scale": {
         "filepath": "../openapi/sgp-09-21-24.json",
         "query": "create an evaluation dataset about europe. account_id is 6630377a5a7b09c735cfeebb. you dont need to create dependencies. add 10 test cases to it about france's economy",
-        "headers": {"x-api-key": "0f4263f5-59cc-4138-8fe1-c5821baf2188"},
+        "headers": {"x-api-key": os.environ["SGP_API_KEY"]},
         "env_vars": {}
     },
     "stripe": {
         "filepath": "openapi/stripe-08-10-24.json",
         "query": "create two customers and charge them 5 dollars each",
-        "headers": {"x-api-key": "0f4263f5-59cc-4138-8fe1-c5821baf2188"},
+        "headers": {"x-api-key": os.environ["SGP_API_KEY"]},
         "env_vars": {}
     }
 }
