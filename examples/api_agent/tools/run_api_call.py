@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 import httpx
 from src.parrot import tool
 from pydantic import BaseModel, Field
@@ -9,7 +9,7 @@ class APICallRunnerInputs(BaseModel):
     method: Literal["POST", "GET", "PATCH", "DELETE", "PUT"] = Field(
         description="HTTP method for request"
     )
-    payload: Optional[dict] = Field(default=None, description="Payload for request")
+    payload: Optional[Union[dict, list]] = Field(default=None, description="Payload for request")
 
 
 @tool
