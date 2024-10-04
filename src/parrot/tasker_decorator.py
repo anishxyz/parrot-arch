@@ -7,9 +7,9 @@ StateType = Dict[str, Any]
 
 class Tasker:
     def __init__(self):
-        self._context = contextvars.ContextVar('_context', default={})
-        self._history = contextvars.ContextVar('_history', default=[])
-        self._state = contextvars.ContextVar('_state', default={})
+        self._context = contextvars.ContextVar("_context", default={})
+        self._history = contextvars.ContextVar("_history", default=[])
+        self._state = contextvars.ContextVar("_state", default={})
 
     def __call__(self, cls):
         self._init_tasker_class(cls)
@@ -24,8 +24,10 @@ class Tasker:
         def decorator(method):
             @wraps(method)
             def wrapper(self, *args, **kwargs):
-                if not hasattr(self, '_state'):
-                    raise TypeError("@tasker.setup can only be used in a @tasker decorated class")
+                if not hasattr(self, "_state"):
+                    raise TypeError(
+                        "@tasker.setup can only be used in a @tasker decorated class"
+                    )
 
                 current_state = self._state.get()
                 new_state = setup_func(self)

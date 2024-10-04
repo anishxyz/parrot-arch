@@ -43,8 +43,8 @@ class ToolRunner:
         user_prompt: Optional[str] = None,
         context: List[dict] = None,
         depth: int = 999,
-        tool_graph: Optional[List[Any]] = None, # dependency graph of tools
-        stream: bool = False
+        tool_graph: Optional[List[Any]] = None,  # dependency graph of tools
+        stream: bool = False,
     ):
         tool_validation = validate_tools(tools)
         if not tool_validation["valid"]:

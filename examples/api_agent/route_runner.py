@@ -1,12 +1,18 @@
 import json
-import os
 from pprint import pprint
+from typing import Dict, Any
 
 from dotenv import load_dotenv
+from src.parrot import tasker
+from src.parrot import ToolRunner
 
-from examples.api_agent.agent_state import setup_api_agent
+from examples.api_agent.agent_state import (
+    extract_resources,
+    organize_resources,
+    build_dependency_tree,
+    organize_routes,
+)
 from examples.api_agent.tools.get_resources import get_resources
-from src.parrot.tool_runner import ToolRunner
 from examples.api_agent.tools.get_dependencies_for_resource import (
     get_dependencies_for_resource,
 )
@@ -16,7 +22,7 @@ from examples.api_agent.tools.run_api_call import run_api_call
 
 load_dotenv()
 
-filepath = "../openapi/sgp-09-21-24.json"
+filepath = "openapi/sgp-09-21-24.json"
 # filepath = "../openapi/stripe-08-10-24.json"
 
 # Load JSON data from the file
@@ -54,3 +60,31 @@ for item in tr:
     pprint(item)
 
 # print(tr)
+
+
+@tasker
+class RouteRunner:
+    @tasker.setup
+    def setup_api_agent(
+        self, openapi: Dict[str, Any], env_vars: Dict[str, str], headers: Dict[str, str]
+    ):
+        resources = extract_resources(openapi)
+        edges = organize_resources(openapi, resources)
+        graph = build_dependency_tree(edges)
+        route_list = organize_routes(openapi, resources)
+        base_url = openapi["servers"][0]["url"]
+        auth_pattern = openapi["components"]["securitySchemes"]
+
+        init = dict(
+            openapi=openapi,
+            resources=resources,
+            edges=edges,
+            graph=graph,
+            route_list=route_list,
+            base_url=base_url,
+            auth_pattern=auth_pattern,
+            env_vars=env_vars,
+            headers=headers,
+        )
+
+        return init

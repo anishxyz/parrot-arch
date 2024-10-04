@@ -23,33 +23,6 @@ RESOURCE_BLACKLIST = [
 ]
 
 
-# ensure openapi spec is resolved
-# assume headers can be used on every request
-def setup_api_agent(
-    openapi: Dict[str, Any], env_vars: Dict[str, str], headers: Dict[str, str]
-):
-    resources = extract_resources(openapi)
-    edges = organize_resources(openapi, resources)
-    graph = build_dependency_tree(edges)
-    route_list = organize_routes(openapi, resources)
-    base_url = openapi["servers"][0]["url"]
-    auth_pattern = openapi["components"]["securitySchemes"]
-
-    init = dict(
-        openapi=openapi,
-        resources=resources,
-        edges=edges,
-        graph=graph,
-        route_list=route_list,
-        base_url=base_url,
-        auth_pattern=auth_pattern,
-        env_vars=env_vars,
-        headers=headers,
-    )
-
-    return init
-
-
 def extract_resources(openapi: Dict[str, Any]) -> List[str]:
     resources: List[str] = []
 
