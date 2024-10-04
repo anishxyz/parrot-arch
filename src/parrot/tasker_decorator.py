@@ -7,7 +7,7 @@ StateType = Dict[str, Any]
 
 class Tasker:
     def __init__(self):
-        self._context = contextvars.ContextVar("_context", default={})
+        self._context = contextvars.ContextVar("_context", default=[])
         self._history = contextvars.ContextVar("_history", default=[])
         self._state = contextvars.ContextVar("_state", default={})
 
@@ -35,6 +35,19 @@ class Tasker:
                 current_state.update(new_state)
                 self._state.set(current_state)
 
+                return method(self, *args, **kwargs)
+
+            return wrapper
+
+        return decorator
+
+    def run(self, run_func: Callable):
+        def decorator(method):
+            @wraps(method)
+            def wrapper(self, *args, **kwargs):
+                # Ensure that _state is initialized
+                if not hasattr(self, '_state'):
+                    self._state = {}
                 return method(self, *args, **kwargs)
 
             return wrapper
