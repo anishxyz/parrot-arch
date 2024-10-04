@@ -107,6 +107,7 @@ headers = api_config["headers"]
 query = api_config["query"]
 env_vars = api_config["env_vars"]
 
+# build agent
 agent = RouteRunner()
 setup = agent.setup_api_agent(openapi=openapi, env_vars=env_vars, headers=headers)
 result = agent.run(query)
