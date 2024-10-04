@@ -33,7 +33,7 @@ class ToolRunner:
         self.tools = []
         self.tool_map = {}
         self.usage = []
-        self.logger = logging.getLogger("parrot")
+        # self.logger = logging.getLogger("parrot")
         self.stream = False
         self.depth = 999
 
@@ -63,6 +63,11 @@ class ToolRunner:
         self.depth = depth
 
         self.tool_map = {tool.__name__: tool for tool in tools}
+
+        if self.stream:
+            return self.tool_loop_stream()
+
+        return self.tool_loop()
 
     def tool_loop(self):
         curr_depth = 1
@@ -121,11 +126,14 @@ class ToolRunner:
                 messages=self.context,
                 tools=[tool.tool_schema for tool in self.tools],
                 parallel_tool_calls=self.parallel_tool_calls,
-                stream=self.stream
             )
 
             last_msg = response.choices[-1].message
             self.context.append(dict(last_msg))
+
+            msg = last_msg.content
+            if msg:
+                yield msg
 
             tool_calls = last_msg.tool_calls
             if tool_calls is None or len(tool_calls) == 0:
@@ -136,6 +144,8 @@ class ToolRunner:
                 tc_type = tc.type
                 tc_func = tc.function.name
                 tc_args = json.loads(tc.function.arguments)
+
+                yield tc
 
                 try:
                     tgt_tool = self.tool_map.get(tc_func)
@@ -159,9 +169,10 @@ class ToolRunner:
                     "tool_call_id": tc_id,
                 }
 
+                yield tc_response
+
                 self.context.append(tc_response)
             self.depth += 1
-        return self.context
 
 
 def find_value_in_nested_dict(d: Dict[str, Any], key: str) -> Any:

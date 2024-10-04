@@ -48,6 +48,9 @@ tools = [
     run_api_call,
 ]
 
-tr = ToolRunner("gpt-4o", state).run(tools=tools, user_prompt=plan_prompt)
+tr = ToolRunner("gpt-4o", state).run(tools=tools, user_prompt=plan_prompt, stream=True)
+
+for item in tr:
+    pprint(item)
 
 # print(tr)
