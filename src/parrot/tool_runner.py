@@ -1,8 +1,8 @@
 import inspect
 import json
-from pprint import pprint
 from typing import List, Optional, Dict, Callable, Any
 
+from litellm import logging
 from pydantic import BaseModel
 
 from ._utils import validate_tools
@@ -15,23 +15,36 @@ class ToolRunnerModelParams(ModelInferenceParams):
 
 
 class ToolRunner:
+    """
+    Util to run a tool calling loop
+    """
 
     def __init__(
         self, model: str, state: dict, parallel_tool_calls: Optional[bool] = None
     ):
+        # setup
         self.model_runner = ModelRunner()
-        self.context = []
-        self.tools = []
-        self.model = model
         self.parallel_tool_calls = parallel_tool_calls
         self.state = state
+        self.model = model
+
+        # defaults
+        self.context = []
+        self.tools = []
+        self.tool_map = {}
         self.usage = []
+        self.logger = logging.getLogger("parrot")
+        self.stream = False
+        self.depth = 999
 
     def run(
         self,
         tools,
         user_prompt: Optional[str] = None,
         context: List[dict] = None,
+        depth: int = 999,
+        tool_graph: Optional[List[Any]] = None, # dependency graph of tools
+        stream: bool = False
     ):
         tool_validation = validate_tools(tools)
         if not tool_validation["valid"]:
@@ -46,12 +59,14 @@ class ToolRunner:
             context if context else [{"role": "user", "content": user_prompt}]
         )
         self.tools = tools
+        self.stream = stream
+        self.depth = depth
 
-        tool_map = {tool.__name__: tool for tool in tools}
+        self.tool_map = {tool.__name__: tool for tool in tools}
 
-        pprint(self.context)
-
-        while True:
+    def tool_loop(self):
+        curr_depth = 1
+        while True and curr_depth < self.depth:
             response = self.model_runner.inference(
                 model=self.model,
                 messages=self.context,
@@ -61,8 +76,6 @@ class ToolRunner:
 
             last_msg = response.choices[-1].message
             self.context.append(dict(last_msg))
-
-            pprint(last_msg)
 
             tool_calls = last_msg.tool_calls
             if tool_calls is None or len(tool_calls) == 0:
@@ -75,7 +88,7 @@ class ToolRunner:
                 tc_args = json.loads(tc.function.arguments)
 
                 try:
-                    tgt_tool = tool_map.get(tc_func)
+                    tgt_tool = self.tool_map.get(tc_func)
                     if tgt_tool is None:
                         raise KeyError(f"Tool '{tc_func}' not found in tools")
 
@@ -97,7 +110,58 @@ class ToolRunner:
                 }
 
                 self.context.append(tc_response)
-                pprint(tc_response)
+            self.depth += 1
+        return self.context
+
+    def tool_loop_stream(self):
+        curr_depth = 1
+        while True and curr_depth < self.depth:
+            response = self.model_runner.inference(
+                model=self.model,
+                messages=self.context,
+                tools=[tool.tool_schema for tool in self.tools],
+                parallel_tool_calls=self.parallel_tool_calls,
+                stream=self.stream
+            )
+
+            last_msg = response.choices[-1].message
+            self.context.append(dict(last_msg))
+
+            tool_calls = last_msg.tool_calls
+            if tool_calls is None or len(tool_calls) == 0:
+                return self.context
+
+            for tc in tool_calls:
+                tc_id = tc.id
+                tc_type = tc.type
+                tc_func = tc.function.name
+                tc_args = json.loads(tc.function.arguments)
+
+                try:
+                    tgt_tool = self.tool_map.get(tc_func)
+                    if tgt_tool is None:
+                        raise KeyError(f"Tool '{tc_func}' not found in tools")
+
+                    formatted_args = auto_format_inputs(tgt_tool, tc_args)
+                    tc_content = tgt_tool(state=self.state, **formatted_args)
+                except KeyError:
+                    tc_content = f"Tool '{tc_func}' not found in tools"
+                except TypeError as e:
+                    # Handle the case where the inputs don't match the function signature
+                    tc_content = f"Error: Invalid inputs for '{tc_func}'. {str(e)}"
+                except Exception as e:
+                    # Handle any other unexpected errors
+                    tc_content = f"Unexpected error occurred while executing '{tc_func}': {str(e)}"
+
+                tc_response = {
+                    "role": "tool",
+                    "content": str(tc_content),
+                    "tool_call_id": tc_id,
+                }
+
+                self.context.append(tc_response)
+            self.depth += 1
+        return self.context
 
 
 def find_value_in_nested_dict(d: Dict[str, Any], key: str) -> Any:
