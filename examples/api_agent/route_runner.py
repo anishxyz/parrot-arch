@@ -23,7 +23,6 @@ from examples.api_agent.tools.run_api_call import run_api_call
 
 @tasker
 class RouteRunner:
-    _state: Dict[str, Any]
 
     @tasker.setup
     def setup_api_agent(
@@ -70,7 +69,7 @@ class RouteRunner:
             run_api_call,
         ]
 
-        tr = ToolRunner("gpt-4o", self._state).run(tools=tools, user_prompt=plan_prompt, stream=True)
+        tr = ToolRunner("gpt-4o", self._state.get()).run(tools=tools, user_prompt=plan_prompt, stream=True)
 
         for item in tr:
             pprint(item)
@@ -83,7 +82,7 @@ load_dotenv()
 
 apis = {
     "scale": {
-        "filepath": "openapi/sgp-09-21-24.json",
+        "filepath": "../openapi/sgp-09-21-24.json",
         "query": "create an evaluation dataset about europe. account_id is 6630377a5a7b09c735cfeebb. you dont need to create dependencies. add 10 test cases to it about france's economy",
         "headers": {"x-api-key": "0f4263f5-59cc-4138-8fe1-c5821baf2188"},
         "env_vars": {}
