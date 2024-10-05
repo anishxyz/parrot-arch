@@ -11,14 +11,29 @@ class Tasker:
         self._history = contextvars.ContextVar("_history", default=[])
         self._state = contextvars.ContextVar("_state", default={})
 
-    def __call__(self, cls):
-        self._init_tasker_class(cls)
-        return cls
+    def __call__(self, cls=None, **kwargs):
+        if cls is not None and isinstance(cls, type):
+            # Decorator used without arguments
+            self._init_tasker_class(cls)
+            return cls
+        else:
+            # Decorator used with arguments
+            def wrapper(cls):
+                self._init_tasker_class(cls, **kwargs)
+                return cls
 
-    def _init_tasker_class(self, cls):
+            return wrapper
+
+    def _init_tasker_class(self, cls, **kwargs):
         cls._context = self._context
         cls._history = self._history
         cls._state = self._state
+
+        memory = kwargs.get('memory', False)  # Default to False if not provided
+        if memory:
+            cls.memory = pd.DataFrame()  # Initialize with an empty DataFrame
+        else:
+            cls.memory = None  # Set to None if memory is False
 
     def setup(self, method):
         @wraps(method)
