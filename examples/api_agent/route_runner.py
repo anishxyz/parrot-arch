@@ -83,7 +83,7 @@ load_dotenv()
 
 apis = {
     "scale": {
-        "filepath": "../openapi/sgp-09-21-24.json",
+        "filepath": "openapi/sgp-09-21-24.json",
         "query": "create an evaluation dataset about europe. account_id is 6630377a5a7b09c735cfeebb. you dont need to create dependencies. add 10 test cases to it about france's economy",
         "headers": {"x-api-key": os.environ["SGP_API_KEY"]},
         "env_vars": {}
